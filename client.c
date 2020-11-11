@@ -24,24 +24,24 @@ int menu(){
     return choix;
 }
 
-void ajoutSomme(int nbCompte, float somme){
+void ajoutSomme(int* nbCompte, float* somme){
 		//on demande le compte puis la somme
 	printf("Veuillez saisir le numéro de compte\n");
-	scanf("%d", &nbCompte);
+	scanf("%d", nbCompte);
 	printf("Veuillez indiquer la somme à ajouter\n");
-	scanf("%f", &somme);
+	scanf("%f", somme);
 }
 
-void retraitMontant(int nbCompte, float somme){
+void retraitMontant(int* nbCompte, float* somme){
 	printf("Veuillez saisir le numéro de compte\n");
-	scanf("%d", &nbCompte);
+	scanf("%d", nbCompte);
 	printf("Veuillez indiquer la somme à retirer\n");
-	scanf("%f", &somme);
+	scanf("%f", somme);
 }
 
-void recupNbCompte(int nbCompte){
+void recupNbCompte(int* nbCompte){
 	printf("Veuillez saisir le numéro de compte\n");
-	scanf("%d", &nbCompte);
+	scanf("%d", nbCompte);
 }
 
 
@@ -141,27 +141,27 @@ int main(int argc, char *argv[]){
 	while(flag){
 		if(m == 1){
 			//ajout d'une somme
-			ajoutSomme(nbCompte, somme);
+			ajoutSomme(&nbCompte, &somme);
 			//on change l'état du buffer
 			//id_client  id_compte  password  somme
-			sprintf(buffer, "%s %d %s %f %d", identifiant, nbCompte, mdp, somme, m);
+			sprintf(buffer, "%d %s %d %s %f", m, identifiant, nbCompte, mdp, somme);
 			flag = 0;
 		}
 		else if(m == 2){
 			//Retrait d'une somme
 			//on demande le compte puis la somme
-			retraitMontant(nbCompte, somme);
+			retraitMontant(&nbCompte, &somme);
 			//on change l'état du buffer
 			//<id_client id_compte password somme>
-			sprintf(buffer, "%s %d %s %f %d", identifiant, nbCompte, mdp, somme, m);
+			sprintf(buffer, "%d %s %d %s %f", m, identifiant, nbCompte, mdp, somme);
 			flag = 0;			
 		}
 		else if (m == 3){
 			//Afficher solde
-			recupNbCompte(nbCompte);
+			recupNbCompte(&nbCompte);
 			//on change l'état du buffer
 			//id_client id_compte password
-			sprintf(buffer, "%s %d %s %d", identifiant, nbCompte, mdp, m);
+			sprintf(buffer, "%d %s %d %s", m, identifiant, nbCompte, mdp);
 			flag = 0;			
 		}
 		else if(m == 4){
@@ -169,7 +169,7 @@ int main(int argc, char *argv[]){
 			recupNbCompte(nbCompte);
 			//on change l'état du buffer
 			//id_client id_compte password
-			sprintf(buffer, "%s %d %s %d", identifiant, nbCompte, mdp, m);
+			sprintf(buffer, "%d %s %d %s %d", m, identifiant, nbCompte, mdp);
 			flag = 0;
 		}
 		else if (m == 5){
@@ -234,7 +234,7 @@ int main(int argc, char *argv[]){
    	printf("Résultat de votre requête :\n%s", receiveBuffer);
 	
 	// On ferme la socket
-    printf("Déconnexion\n");
+    //printf("Déconnexion\n");
     close(sockfd);
 
     return 0;
