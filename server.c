@@ -8,9 +8,50 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 
+// Données sur les clients
 
-int main(int argc, char *argv[])
-{       
+typedef struct {
+
+    int numero;
+    int montant;
+    float historique[10];
+
+} compte;
+
+struct _client {
+
+    char identifiant[10];
+    char mdp[15];
+
+    compte* compte_1;
+    compte* compte_2;
+
+} clients[2];
+
+
+
+/*clients[1].identifiant = "789";
+clients[1].mdp = "789";
+clients[1].compte_1 = 500;
+clients[1].compte_2 = 530;
+*/
+
+
+
+int main(int argc, char *argv[]){     
+
+/*sprintf(clients[0].identifiant,"123\0");
+//clients[0].identifiant = "123\0";
+sprintf(clients[0].mdp,"321\0");
+//clients[0].mdp = "321\0";
+clients[0].compte_1->numero = 1;
+clients[0].compte_2->numero = 2;
+clients[0].compte_1->montant = 350;
+clients[0].compte_2->montant = 938;  
+
+    printf("Identifiant: %s \nMot De passe: %s \nNum compte 1: %d\nMontant 1:%d\nNum compte 2: %d\nMontant 2:%d\n",clients[0].identifiant,clients[0].mdp,clients[0].compte_1->numero,clients[0].compte_1->montant,clients[0].compte_2->numero,clients[0].compte_2->montant);
+*/
+
     //Initialisation des différentes variables
 
     int sockfd, newsockfd, portno;
@@ -55,11 +96,27 @@ int main(int argc, char *argv[])
         if (n < 0){ printf("Erreur lors de l'appel système read()\n"); return 1;}
 
 
-        printf("Received packet from %s:%d\nData: [%s]\n\n",inet_ntoa(cli_addr.sin_addr), ntohs(cli_addr.sin_port), buffer);
+        printf("Message reçu par %s:%d\nData: %s\n\n",inet_ntoa(cli_addr.sin_addr), ntohs(cli_addr.sin_port), buffer);
 
 
-        sprintf(sendBuffer,"Acquittement du message\n");
-        n=write(newsockfd,sendBuffer,strlen(sendBuffer));   
+        //CONNEXION
+        char identifiant[10];
+        char mdp[15];
+        int action;
+
+
+        sscanf(buffer,"%d %s %s",&action,identifiant,mdp);
+        printf("Action: %d   \nidentifiant: %s  \n  Mot de passe: %s \n",action,identifiant,mdp);
+
+        // VERIFIER QUE LES IDENTIFIANTS SONT BONS
+
+        //si c'est bon 
+        sprintf(sendBuffer,"Identifiants Corrects\n");
+        n=write(newsockfd,sendBuffer,strlen(sendBuffer));  
+
+        
+
+
         bzero(buffer,256);   
         bzero(sendBuffer,256);   
         close(newsockfd);
