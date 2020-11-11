@@ -155,7 +155,7 @@ clients[0].compte_2->montant = 938;
 
             bzero(sendBuffer,256);
             sprintf(sendBuffer,"HISTORIQUE\n");
-            sscanf(buffer,"%d %s %d %s %f",&action,identifiant,&nbCompte, mdp, &somme);
+            sscanf(buffer,"%d %s %d %s",&action,identifiant,&nbCompte, mdp);
             n=write(newsockfd,sendBuffer,strlen(sendBuffer));  
             printf("Action: %d\n Identifiant: %s\nNcompte:%d\n Mot de passe: %s\nSomme: %f \n",action,identifiant,nbCompte, mdp, somme);
         }
