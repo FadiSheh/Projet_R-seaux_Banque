@@ -8,8 +8,7 @@
 #include <netdb.h> 
 
 
-
-
+//FONCTIONS MENU ET ACTIONS POSSIBLES
 int menu(){
 
 	int choix;
@@ -25,21 +24,42 @@ int menu(){
     return choix;
 }
 
+void ajoutSomme(int nbCompte, float somme){
+		//on demande le compte puis la somme
+	printf("Veuillez saisir le numéro de compte\n");
+	scanf("%d", &nbCompte);
+	printf("Veuillez indiquer la somme à ajouter\n");
+	scanf("%f", &somme);
+}
+
+void retraitMontant(int nbCompte, float somme){
+	printf("Veuillez saisir le numéro de compte\n");
+	scanf("%d", &nbCompte);
+	printf("Veuillez indiquer la somme à retirer\n");
+	scanf("%f", &somme);
+}
+
+void recupNbCompte(int nbCompte){
+	printf("Veuillez saisir le numéro de compte\n");
+	scanf("%d", &nbCompte);
+}
 
 
+
+//MAIN
 int main(int argc, char *argv[]){
 
+	//declaration des variables
+    int sockfd, portno, m, n;
+   	int flag;
+    struct sockaddr_in serv_addr;
+    struct hostent *server;
+    int nbCompte;
+    float somme;
+    char buffer[256];
+    char receiveBuffer[256];
 
-    	int sockfd, portno, m, n;
-   		int flag;
-    	struct sockaddr_in serv_addr;
-    	struct hostent *server;
-    	int nbCompte;
-    	float somme;
-    	char buffer[256];
-    	char receiveBuffer[256];
-
-
+    //si nombre de variables invalide
 	if (argc<4)
 	{
 		fprintf(stderr,"./client <server_address> <server_numport> <message>\n");
@@ -47,36 +67,34 @@ int main(int argc, char *argv[]){
 		return 1;
 	}
 
-    	portno = atoi(argv[2]);
-	// 1) Création de la socket, INTERNET et TCP
+	//recuperation du numero du port
+    portno = atoi(argv[2]);
 
-    	sockfd = socket(AF_INET, SOCK_STREAM, 0);
+	//creation de la socket
+    sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
-    	if (sockfd < 0) 
+    if (sockfd < 0) 
 	{
 		fprintf(stderr,"Impossible d'ouvrir la socket. On arrête tout.\n");
 		return 1;
 	}
     
+    //recuperation du numero du serveur
 	server = gethostbyname(argv[1]);
-    	if (server == NULL) 
+    if (server == NULL) 
 	{
         	fprintf(stderr,"Impossible de récupérer les infos sur le serveur\n");
 		return 1;
-    	}
+    }
 
 	// On donne toutes les infos sur le serveur
-    	bzero((char *) &serv_addr, sizeof(serv_addr));
-    	serv_addr.sin_family = AF_INET;
-    	bcopy((char *)server->h_addr, (char *)&serv_addr.sin_addr.s_addr, server->h_length);
-    	serv_addr.sin_port = htons(portno);
+    bzero((char *) &serv_addr, sizeof(serv_addr));
+    serv_addr.sin_family = AF_INET;
+    bcopy((char *)server->h_addr, (char *)&serv_addr.sin_addr.s_addr, server->h_length);
+    serv_addr.sin_port = htons(portno);
 
-	// On se connecte. L'OS local nous trouve un numéro de port, grâce auquel le serveur
-	// peut nous renvoyer des réponses
-
-    
-
-if (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0) 
+	//connexion de la socket
+	if (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0) 
 	{
 		fprintf(stderr,"Impossible de faire l'appel system connect().\n");
 		return 1;
@@ -97,7 +115,7 @@ if (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0)
 	scanf("%s", mdp);
 	//printf("%s\n", mdp);
 	
-	        //on stocke ces données dans un buffer
+	//on stocke ces données dans un buffer
 	sprintf(buffer, "%d %s %s", 0, identifiant, mdp);
     n = write(sockfd,buffer,strlen(buffer));
 
@@ -110,91 +128,87 @@ if (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0)
 	close(sockfd);
 
 	printf("receiveBuffer='%s'\n\n",receiveBuffer);
-
-	m=menu();
-
-	//demander l'action
+	//demander l'action si la reponse du serveur est valide
+	if(1){
+		printf("est rentré\n");
+		//si la premiere donnée est un 1 => on peut passer dans le menu
+		m = menu();
+		flag = 1;
+	}
 
 	//en fonction de laction choisie on demande infos supp
 	//FAIRE DES FONCTIONS
-	while(m!=5){
-        
-        if (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0) 
+	while(flag){
+		if(m == 1){
+			//ajout d'une somme
+			ajoutSomme(nbCompte, somme);
+			//on change l'état du buffer
+			//id_client  id_compte  password  somme
+			sprintf(buffer, "%s %d %s %f %d", identifiant, nbCompte, mdp, somme, m);
+			flag = 0;
+		}
+		else if(m == 2){
+			//Retrait d'une somme
+			//on demande le compte puis la somme
+			retraitMontant(nbCompte, somme);
+			//on change l'état du buffer
+			//<id_client id_compte password somme>
+			sprintf(buffer, "%s %d %s %f %d", identifiant, nbCompte, mdp, somme, m);
+			flag = 0;			
+		}
+		else if (m == 3){
+			//Afficher solde
+			recupNbCompte(nbCompte);
+			//on change l'état du buffer
+			//id_client id_compte password
+			sprintf(buffer, "%s %d %s %d", identifiant, nbCompte, mdp, m);
+			flag = 0;			
+		}
+		else if(m == 4){
+			//Afficher 10 dernières opérations
+			recupNbCompte(nbCompte);
+			//on change l'état du buffer
+			//id_client id_compte password
+			sprintf(buffer, "%s %d %s %d", identifiant, nbCompte, mdp, m);
+			flag = 0;
+		}
+		else if (m == 5){
+			//Déconnexion
+			printf("Déconnexion en cours...\n");
+			close(sockfd);
+			flag = 0;
+			return 1;
+		}
+		
+		else if (m>5){
+			printf("!! Veuillez choisir une action valide !!\n");
+			m = menu();
+			flag = 1;	
+		}
+	}
+
+	//creation de la socket
+    sockfd = socket(AF_INET, SOCK_STREAM, 0);
+
+    if (sockfd < 0) 
+	{
+		fprintf(stderr,"Impossible d'ouvrir la socket. On arrête tout.\n");
+		return 1;
+	}
+
+	if (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0) 
 	{
 		fprintf(stderr,"Impossible de faire l'appel system connect().\n");
 		return 1;
 	}
-	
+	/*n = write(sockfd,buffer,strlen(buffer));
+    printf("Message envoyé\nAttente de la réponse\n");
+    n = read(sockfd,receiveBuffer,256);
 
-		if(m == 1){
-			//ajout d'une somme
-			//on demande le compte puis la somme
-			printf("Veuillez saisir le numéro de compte\n");
-			scanf("%d", &nbCompte);
-			printf("Veuillez indiquer la somme à ajouter\n");
-			scanf("%f", &somme);
-			//on change l'état du buffer
-			//id_client  id_compte  password  somme
-			sprintf(buffer, "%s %d %s %f", identifiant, nbCompte, mdp, somme);
-			
-		}
-		 if(m == 2){
-			//Retrait d'une somme
-			//on demande le compte puis la somme
-			printf("Veuillez saisir le numéro de compte\n");
-			scanf("%d", &nbCompte);
-			printf("Veuillez indiquer la somme à retirer\n");
-			scanf("%f", &somme);
-			//on change l'état du buffer
-			//<id_client id_compte password somme>
-			sprintf(buffer, "%s %d %s %f", identifiant, nbCompte, mdp, somme);
-			
-		}
-
-
-		if (m == 3){
-			//Afficher solde
-			printf("Veuillez saisir le numéro de compte\n");
-			scanf("%d", &nbCompte);
-			//on change l'état du buffer
-			//id_client id_compte password
-			sprintf(buffer, "%s %d %s", identifiant, nbCompte, mdp);
-			
-		}
-		if(m == 4){
-			//Afficher 10 dernières opérations
-			printf("Veuillez saisir le numéro de compte\n");
-			scanf("%d", &nbCompte);
-			//on change l'état du buffer
-			//id_client id_compte password
-			sprintf(buffer, "%s %d %s", identifiant, nbCompte, mdp);
-			
-		}
-		 if (m == 5){
-			//Déconnexion
-			printf("Déconnexion en cours...\n");
-			close(sockfd); return 1;
-		}
-		
-		if ((m>5) || (m <1)){
-			printf("!! Veuillez choisir une action valide !!\n");
-			
-		}
-
-		n = write(sockfd,buffer,strlen(buffer));
-        printf("Message envoyé\n\n");
-
-        n = read(sockfd,receiveBuffer,256);
-
-	     printf("receiveBuffer='%s'\n\n",receiveBuffer);
-          bzero(buffer,256);   
-           bzero(receiveBuffer,256);   
-		m = menu();
+	printf("receiveBuffer='%s'\n\n",receiveBuffer);*/
+    //bzero(buffer,256);   
+    //bzero(receiveBuffer,256);   
        //close(sockfd);
-	}
-
-
-
 	/*printf("%d\n", m);
 	printf("%s\n", argv[0]);
 	printf("%s\n", argv[1]);
@@ -211,22 +225,18 @@ if (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0)
 	//printf("buffer : %s", buffer);
 
 	
-	//sprintf(buffer,"%d %d %s %d\n", argv[1], argv[2], argv[3], m);
+	//sprintf(buffer,"%s %d %s %d\n", argv[1], argv[2], argv[3], m);
 
-    //n = write(sockfd,buffer,strlen(buffer));
+    n = write(sockfd,buffer,strlen(buffer));
+    printf("Message envoyé\nAttente de la réponse\n");
+    n = read(sockfd,receiveBuffer,256);
 
-    //n = read(sockfd,receiveBuffer,256);
-
-   // printf("Résultat de votre requête :\n");
-	//printf("receiveBuffer='%s'",receiveBuffer);
-    
-
-
-
+   	printf("Résultat de votre requête :\n%s", receiveBuffer);
+	
 	// On ferme la socket
-        printf("Déconnexion\n");
-    	close(sockfd);
+    printf("Déconnexion\n");
+    close(sockfd);
 
-    	return 0;
+    return 0;
 }
 
