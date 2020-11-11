@@ -82,7 +82,7 @@ clients[0].compte_2->montant = 938;
 
 
     listen(sockfd,5);                                      //6 connexions pendantes maximum
-    
+ 
     while (1){
 
         newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
@@ -96,31 +96,76 @@ clients[0].compte_2->montant = 938;
         if (n < 0){ printf("Erreur lors de l'appel système read()\n"); return 1;}
 
 
-        printf("Message reçu par %s:%d\nData: %s\n\n",inet_ntoa(cli_addr.sin_addr), ntohs(cli_addr.sin_port), buffer);
+        //printf("Message reçu par %s:%d\nData: %s\n\n",inet_ntoa(cli_addr.sin_addr), ntohs(cli_addr.sin_port), buffer);
 
 
         //CONNEXION
         char identifiant[10];
         char mdp[15];
         int action;
+        int good=0;
+        int nbCompte;
+        float somme;
+
+        sscanf(buffer,"%d",&action);
+         
+
+        if (action==0){
+
+            sscanf(buffer,"%d %s %s",&action,identifiant,mdp);
+            printf("Action: %d   \nidentifiant: %s  \nMot de passe: %s \n",action,identifiant,mdp);
+            bzero(sendBuffer,256);
+            sprintf(sendBuffer,"CONNECTED\n");
+            n=write(newsockfd,sendBuffer,strlen(sendBuffer));
+
+        }
 
 
-        sscanf(buffer,"%d %s %s",&action,identifiant,mdp);
-        printf("Action: %d   \nidentifiant: %s  \n  Mot de passe: %s \n",action,identifiant,mdp);
+        if (action==1){ 
 
-        // VERIFIER QUE LES IDENTIFIANTS SONT BONS
+            bzero(sendBuffer,256);
+            sprintf(sendBuffer,"AJOUT\n");
+            sscanf(buffer,"%d %s %d %s %f",&action,identifiant,&nbCompte, mdp, &somme);
+            n=write(newsockfd,sendBuffer,strlen(sendBuffer));  
+            printf("Action: %d\n Identifiant: %s\nNcompte:%d\n Mot de passe: %s\nSomme: %f \n",action,identifiant,nbCompte, mdp, somme);
 
-        //si c'est bon 
-        sprintf(sendBuffer,"Identifiants Corrects\n");
-        n=write(newsockfd,sendBuffer,strlen(sendBuffer));  
+        }
 
+        if (action==2){ 
+
+            bzero(sendBuffer,256);
+            sprintf(sendBuffer,"RETRAIT\n");
+            sscanf(buffer,"%d %s %d %s %f",&action,identifiant,&nbCompte, mdp, &somme);
+            n=write(newsockfd,sendBuffer,strlen(sendBuffer));  
+            printf("Action: %d\n Identifiant: %s\nNcompte:%d\n Mot de passe: %s\nSomme: %f \n",action,identifiant,nbCompte, mdp, somme);
+
+        }
+      
+
+        if (action==3){ 
+
+            bzero(sendBuffer,256);
+            sprintf(sendBuffer,"AFFICHER SOLDE\n");
+            sscanf(buffer,"%d %s %d %s",&action,identifiant,&nbCompte, mdp);
+            n=write(newsockfd,sendBuffer,strlen(sendBuffer));  
+            printf("Action: %d\n Identifiant: %s\nNcompte:%d\n Mot de passe: %s\n",action,identifiant,nbCompte, mdp);
+        }
+
+        if (action==4){ 
+
+            bzero(sendBuffer,256);
+            sprintf(sendBuffer,"HISTORIQUE\n");
+            sscanf(buffer,"%d %s %d %s %f",&action,identifiant,&nbCompte, mdp, &somme);
+            n=write(newsockfd,sendBuffer,strlen(sendBuffer));  
+            printf("Action: %d\n Identifiant: %s\nNcompte:%d\n Mot de passe: %s\nSomme: %f \n",action,identifiant,nbCompte, mdp, somme);
+        }
+
+   
         
-
-
         bzero(buffer,256);   
         bzero(sendBuffer,256);   
         close(newsockfd);
-            
+        
         }
         
         close(sockfd);
