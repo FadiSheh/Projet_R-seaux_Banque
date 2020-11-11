@@ -9,118 +9,63 @@
 #include <arpa/inet.h>
 
 
-
-
-
-
-
-
-
-
 int main(int argc, char *argv[])
-{
-     	int sockfd, newsockfd, portno;
-     	socklen_t clilen;
-     	char buffer[256];
-     	char sendBuffer[256];
-     	struct sockaddr_in serv_addr, cli_addr;
-     	int n;
+{       
+    //Initialisation des différentes variables
 
-        
-        printf("Demarrage du Serveur sur le port 32000 (défaut)");
-        
-	// Creation de la socket SOCK_STREAM 
-     	sockfd = socket(AF_INET, SOCK_STREAM, 0); //SOCKSTREAM correspond au tcp
-
-     	while(sockfd < 0){
-
-         	printf("Erreur Ouverture Socket.\n");
-            sockfd = socket(AF_INET, SOCK_STREAM, 0);
-
-	}
+    int sockfd, newsockfd, portno;
+    socklen_t clilen;
+    char buffer[256];
+    char sendBuffer[256];
+    struct sockaddr_in serv_addr, cli_addr;
+    int n,res_bind;
 
 
-        printf("Création Socket Reussie\n");
+    // Création de la socket TCP
+
+    sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    if (sockfd == -1){ printf("Erreur lors de l'ouverture de la socket\n"); return 1;}
 
 
-
-	// 2) on réclame au noyau l'utilisation du port passé en paramètre 
-	// INADDR_ANY dit que la socket va être affectée à toutes les interfaces locales
-
-     	bzero((char *) &serv_addr, sizeof(serv_addr));
-     	portno = atoi(argv[1]);
-     	serv_addr.sin_family = AF_INET;
-     	serv_addr.sin_addr.s_addr = INADDR_ANY;
-     	serv_addr.sin_port = htons(portno);
-
-     	if (bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) 
-	{
-         	printf("Impossible de faire l'appel système bind().\n");
-		return 1;
-	}
-
-       
-
-	// On commence à écouter sur la socket. Le 5 est le nombre max
-	// de connexions pendantes
-
-     	listen(sockfd,5);
-
-     	while (1)
-     	{    
-     		newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
-     		if (newsockfd < 0) 
-		{
-         		fprintf(stderr,"Impossible de faire l'appel système accept().\n");
-			return 1;
-		}
-
-          
-     		bzero(buffer,256); //vide le buffer
-     		n = read(newsockfd,buffer,255);
-
-     		if (n < 0) 
-		{
-         		fprintf(stderr,"Impossible de faire l'appel système read().\n");
-			return 1;
-		}
-
-        	printf("Received packet from %s:%d\nData: %s\n\n",
-                	inet_ntoa(cli_addr.sin_addr), ntohs(cli_addr.sin_port), buffer);
+    bzero((char *) &serv_addr, sizeof(serv_addr));
+    portno = atoi("32000");                                 //Le port par défaut pour le serveur est le port 32000
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_addr.s_addr = INADDR_ANY;                 //Socket affectée à toutes les interfaces
+    serv_addr.sin_port = htons(portno);
 
 
 
-            int id_client;
-            int id_compte;
-            int somme;
-            char password[50];
-            int action;
-
-            sscanf(buffer, "%d %d %d %s %d",&action, &id_client,&id_compte,password,&somme);
-
-            printf("Action : %d \nId Client : %d \n Id Compte : %d \n Mot de Passe saisi : %s\n Montant à gérer %d",action, id_client, id_compte, password, somme );
+    res_bind = bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr));
+    if ( res_bind< 0){ printf("Erreur lors de l'appel système bind()\n"); return 1;}
 
 
 
-            //Verification id et mot de passe
+    listen(sockfd,5);                                      //6 connexions pendantes maximum
+    
+    while (1){
 
-            sscanf(buffer, "%d", &action);
+        newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
 
+        if (newsockfd < 0){ printf("Erreur lors de l'appel système accept()\n"); return 1;}
+
+
+        bzero(buffer,256);                                //(Re)initialisation de buffer
+        n = read(newsockfd,buffer,255);
+
+        if (n < 0){ printf("Erreur lors de l'appel système read()\n"); return 1;}
+
+
+        printf("Received packet from %s:%d\nData: [%s]\n\n",inet_ntoa(cli_addr.sin_addr), ntohs(cli_addr.sin_port), buffer);
+
+
+        sprintf(sendBuffer,"Acquittement du message\n");
+        n=write(newsockfd,sendBuffer,strlen(sendBuffer));   
+        bzero(buffer,256);   
+        bzero(sendBuffer,256);   
+        close(newsockfd);
             
-
-
-
-
-		sprintf(sendBuffer,"Acquittement du message\n");
-		//n=write(newsockfd,sendBuffer,strlen(sendBuffer));	
-
-     		close(newsockfd);
-     	}
-
-     	close(sockfd);
-     	return 0; 
+        }
+        
+        close(sockfd);
+        return 0; 
 }
-
-
-
-
