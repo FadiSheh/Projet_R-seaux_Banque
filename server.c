@@ -21,6 +21,8 @@ typedef struct{
 
 } case_tableau ;
 
+
+
 struct _client {
 
     char identifiant[10];
@@ -29,6 +31,8 @@ struct _client {
     case_tableau compte[2][11];
 
 } clients[2];
+
+
 
 int verif_identifiants(char* identifiant, char* mdp){
 
@@ -44,6 +48,8 @@ int verif_identifiants(char* identifiant, char* mdp){
 return -1;}
 
 
+
+
 void deplacer(int nbCompte,int indice_client){
   
     for (int i = 10 ;i>1;i--){
@@ -55,6 +61,8 @@ void deplacer(int nbCompte,int indice_client){
 }
 
 
+
+
 void ajout_montant(float somme,int nbCompte,int indice_client){
 
 
@@ -64,8 +72,10 @@ void ajout_montant(float somme,int nbCompte,int indice_client){
     clients[indice_client].compte[nbCompte][0].type_operation = 0;
     clients[indice_client].compte[nbCompte][0].date = time(NULL);
 
+
     clients[indice_client].compte[nbCompte][1]=clients[indice_client].compte[nbCompte][0];
     clients[indice_client].compte[nbCompte][1].montant = somme;
+
 
     printf("Solde du client : %.f\n",clients[indice_client].compte[nbCompte][0].montant);
     printf("Type operation : %d\n",clients[indice_client].compte[nbCompte][0].type_operation);
@@ -75,6 +85,7 @@ void ajout_montant(float somme,int nbCompte,int indice_client){
     printf("date: %02d/%02d/%02d\n",ptm->tm_mday,ptm->tm_mon,1900+ptm->tm_year);
 
 }
+
 
 
 
@@ -140,7 +151,17 @@ for (int i = 1; i<11 ;i++){
     clients[0].compte[0][i].date = time(NULL);
 }
 
+sprintf(clients[1].identifiant,"456");
+//clients[0].identifiant = "123";
+sprintf(clients[1].mdp,"654");
+//clients[0].mdp = "321";
+clients[1].compte[0][0].montant = 500;
 
+for (int i = 1; i<11 ;i++){
+    clients[1].compte[0][i].montant = 0;
+    clients[1].compte[0][i].type_operation = 0;
+    clients[1].compte[0][i].date = time(NULL);
+}
     
     //printf("Identifiant: %s\nMot de passe: %s\nMontant: %f\n ",clients[0].identifiant,clients[0].mdp,clients[0].compte_1[0].montant);
     //Initialisation des différentes variables
@@ -227,6 +248,7 @@ for (int i = 1; i<11 ;i++){
 
             printf("Le client fait un ajout\n");
             sscanf(buffer,"%d %s %d %s %f",&action,identifiant,&nbCompte, mdp, &somme);
+            indice_client= verif_identifiants(identifiant,mdp);
             printf("Action: %d\nIdentifiant: %s\nNcompte:%d\nMot de passe: %s\nSomme: %f \n",action,identifiant,nbCompte, mdp, somme); 
             if( (nbCompte>2) || (nbCompte<0)){ok = 0;} else { ok =1; ajout_montant(somme,nbCompte,indice_client);}
             if(ok ==1) {sprintf(sendBuffer,"OK\n");printf("Ajout Réussi\n");} else { sprintf(sendBuffer,"KO\n"); printf("Ajout Echoué\n");}
@@ -239,6 +261,7 @@ for (int i = 1; i<11 ;i++){
 
             printf("Le client fait un retrait\n");
             sscanf(buffer,"%d %s %d %s %f",&action,identifiant,&nbCompte, mdp, &somme);
+            indice_client= verif_identifiants(identifiant,mdp);
             printf("Action: %d\nIdentifiant: %s\nNcompte:%d\nMot de passe: %s\nSomme: %f \n",action,identifiant,nbCompte, mdp, somme);
             if( (nbCompte>2) || (nbCompte<0)){ok = 0;} else { ok =1;}
             retrait_montant(somme,nbCompte,indice_client);
@@ -253,6 +276,7 @@ for (int i = 1; i<11 ;i++){
 
             printf("Le client veut afficher son solde\n");
             sscanf(buffer,"%d %s %d %s",&action,identifiant,&nbCompte, mdp);
+            indice_client= verif_identifiants(identifiant,mdp);
             printf("Action: %d\nIdentifiant: %s\nNcompte:%d\nMot de passe: %s\n",action,identifiant,nbCompte, mdp);
             if( (nbCompte>2) || (nbCompte<0)){ok = 0;} else { ok =1; Val = afficher_solde(nbCompte,indice_client);}
 
@@ -267,9 +291,17 @@ for (int i = 1; i<11 ;i++){
 
             printf("Le client veut afficher son historique\n");
             sscanf(buffer,"%d %s %d %s",&action,identifiant,&nbCompte, mdp);
+            indice_client= verif_identifiants(identifiant,mdp);
             printf("Action: %d\nIdentifiant: %s\nNcompte:%d\nMot de passe: %s\n",action,identifiant,nbCompte, mdp);
 
             for(int i = 1; i<11;i++){
+
+                printf("%s \n",historique(indice_client,nbCompte,i));
+
+            }
+
+            for(int i = 1; i<11;i++){
+            bzero(sendBuffer,256); 
             sprintf(sendBuffer,"%s",historique(indice_client,nbCompte,i));
             n=write(newsockfd,sendBuffer,strlen(sendBuffer));  }
             

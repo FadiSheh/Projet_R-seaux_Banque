@@ -214,6 +214,11 @@ int main(int argc, char *argv[]){
 
     n = write(sockfd,buffer,strlen(buffer));
     printf("\nMessage envoyé\nAttente de la réponse\n");
+
+
+    if(m==4){sleep(1);}
+
+
     n = read(sockfd,receiveBuffer,256);
     
    	printf("\n%s", receiveBuffer);
