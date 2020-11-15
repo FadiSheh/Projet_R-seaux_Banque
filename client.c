@@ -12,13 +12,14 @@
 int menu(){
 
 	int choix;
-
+    printf("\n");
     printf("Gestion du compte : choix de l'action\n");
-    printf("Ajout d'une somme (1)\n");
-    printf("Retrait d'une somme (2)\n");
-    printf("Afficher solde (3)\n");   
-    printf("Afficher 10 dernières opérations (4)\n");
-    printf("Déconnexion (5)\n");
+    printf("[1] Ajout d'une somme \n");
+    printf("[2] Retrait d'une somme \n");
+    printf("[3] Afficher solde\n");   
+    printf("[4] Afficher 10 dernières opérations\n");
+    printf("[5] Déconnexion\n");
+    printf("\n");
 
     scanf("%d", &choix);
     return choix;
@@ -127,14 +128,21 @@ int main(int argc, char *argv[]){
 
 	close(sockfd);
 
-	printf("receiveBuffer='%s'\n\n",receiveBuffer);
+
+	char verif_identifiants[15];
+
+
+	printf("%s\n\n",receiveBuffer);
+
+	sscanf(receiveBuffer,"%s",verif_identifiants);
 	//demander l'action si la reponse du serveur est valide
-	if(1){
-		printf("est rentré\n");
+	if(strcmp("OK",verif_identifiants) == 0){
+
+		printf("Connexion Réussie\n");
 		//si la premiere donnée est un 1 => on peut passer dans le menu
 		m = menu();
 		flag = 1;
-	}
+	} else { printf("Identifiants Erronés\n");exit(0);}
 
 	//en fonction de laction choisie on demande infos supp
 	//FAIRE DES FONCTIONS
@@ -145,7 +153,7 @@ int main(int argc, char *argv[]){
 			//on change l'état du buffer
 			//id_client  id_compte  password  somme
 			sprintf(buffer, "%d %s %d %s %f", m, identifiant, nbCompte, mdp, somme);
-			flag = 0;
+			flag = 1;
 		}
 		else if(m == 2){
 			//Retrait d'une somme
@@ -154,7 +162,7 @@ int main(int argc, char *argv[]){
 			//on change l'état du buffer
 			//<id_client id_compte password somme>
 			sprintf(buffer, "%d %s %d %s %f", m, identifiant, nbCompte, mdp, somme);
-			flag = 0;			
+			flag = 1;			
 		}
 		else if (m == 3){
 			//Afficher solde
@@ -162,15 +170,15 @@ int main(int argc, char *argv[]){
 			//on change l'état du buffer
 			//id_client id_compte password
 			sprintf(buffer, "%d %s %d %s", m, identifiant, nbCompte, mdp);
-			flag = 0;			
+			flag = 1;			
 		}
 		else if(m == 4){
 			//Afficher 10 dernières opérations
-			recupNbCompte(nbCompte);
+			recupNbCompte(&nbCompte);
 			//on change l'état du buffer
 			//id_client id_compte password
-			sprintf(buffer, "%d %s %d %s %d", m, identifiant, nbCompte, mdp);
-			flag = 0;
+			sprintf(buffer, "%d %s %d %s", m, identifiant, nbCompte, mdp);
+			flag = 1;
 		}
 		else if (m == 5){
 			//Déconnexion
@@ -182,10 +190,11 @@ int main(int argc, char *argv[]){
 		
 		else if (m>5){
 			printf("!! Veuillez choisir une action valide !!\n");
-			m = menu();
+			
 			flag = 1;	
 		}
-	}
+
+   
 
 	//creation de la socket
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -201,42 +210,28 @@ int main(int argc, char *argv[]){
 		fprintf(stderr,"Impossible de faire l'appel system connect().\n");
 		return 1;
 	}
-	/*n = write(sockfd,buffer,strlen(buffer));
-    printf("Message envoyé\nAttente de la réponse\n");
-    n = read(sockfd,receiveBuffer,256);
 
-	printf("receiveBuffer='%s'\n\n",receiveBuffer);*/
-    //bzero(buffer,256);   
-    //bzero(receiveBuffer,256);   
-       //close(sockfd);
-	/*printf("%d\n", m);
-	printf("%s\n", argv[0]);
-	printf("%s\n", argv[1]);
-	printf("%s\n", argv[2]);
-	printf("%s\n", argv[3]);*/
-
-
-
-	//affichage des données concernant le client ainsi que son action désirée
-	//sprintf(buffer, "%d %d %d %s %d", );
-	//sprintf(buffer, "%d %d %d %s %d",1, 3, 67, "coucou", 100);
-	//sprintf(buffer,"%d\n", m);
-
-	//printf("buffer : %s", buffer);
-
-	
-	//sprintf(buffer,"%s %d %s %d\n", argv[1], argv[2], argv[3], m);
 
     n = write(sockfd,buffer,strlen(buffer));
-    printf("Message envoyé\nAttente de la réponse\n");
+    printf("\nMessage envoyé\nAttente de la réponse\n");
     n = read(sockfd,receiveBuffer,256);
-
-   	printf("Résultat de votre requête :\n%s", receiveBuffer);
+    
+   	printf("\n%s", receiveBuffer);
 	
 	// On ferme la socket
     //printf("Déconnexion\n");
     close(sockfd);
+    bzero(receiveBuffer,256);  
+
+    printf("\n");   
+    m = menu();
+
+
+
+
+	}
+
+
 
     return 0;
 }
-

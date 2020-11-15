@@ -7,51 +7,142 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <arpa/inet.h>
+#include <time.h>
 
 // Données sur les clients
+//time_t rawtime = time(NULL);
 
-typedef struct {
 
-    int numero;
-    int montant;
-    float historique[10];
+typedef struct{
 
-} compte;
+    float montant;
+    int type_operation;    //0 AJOUT 1 RETRAIT
+    time_t date;
+
+} case_tableau ;
 
 struct _client {
 
     char identifiant[10];
     char mdp[15];
 
-    compte* compte_1;
-    compte* compte_2;
+    case_tableau compte[2][11];
 
 } clients[2];
 
+int verif_identifiants(char* identifiant, char* mdp){
 
 
-/*clients[1].identifiant = "789";
-clients[1].mdp = "789";
-clients[1].compte_1 = 500;
-clients[1].compte_2 = 530;
-*/
+  for (int i = 0 ; i<2 ; i++){
+
+    if ( strcmp(clients[i].identifiant,identifiant)==0){
+
+        if (strcmp(clients[i].mdp,mdp) == 0){  return i;} 
+            else {return -1;}
+}}
+
+return -1;}
+
+
+void deplacer(int nbCompte,int indice_client){
+  
+    for (int i = 10 ;i>1;i--){
+
+    clients[indice_client].compte[nbCompte][i]=clients[indice_client].compte[nbCompte][i-1];
+   
+
+    }
+}
+
+
+void ajout_montant(float somme,int nbCompte,int indice_client){
+
+
+    deplacer(nbCompte,indice_client);
+
+    clients[indice_client].compte[nbCompte][0].montant = clients[indice_client].compte[nbCompte][0].montant+somme;
+    clients[indice_client].compte[nbCompte][0].type_operation = 0;
+    clients[indice_client].compte[nbCompte][0].date = time(NULL);
+
+    clients[indice_client].compte[nbCompte][1]=clients[indice_client].compte[nbCompte][0];
+    clients[indice_client].compte[nbCompte][1].montant = somme;
+
+    printf("Solde du client : %.f\n",clients[indice_client].compte[nbCompte][0].montant);
+    printf("Type operation : %d\n",clients[indice_client].compte[nbCompte][0].type_operation);
+   
+    struct tm *ptm = localtime(&clients[indice_client].compte[nbCompte][0].date);
+
+    printf("date: %02d/%02d/%02d\n",ptm->tm_mday,ptm->tm_mon,1900+ptm->tm_year);
+
+}
 
 
 
-int main(int argc, char *argv[]){     
+void retrait_montant(float somme,int nbCompte,int indice_client){
+deplacer(nbCompte,indice_client);
 
-/*sprintf(clients[0].identifiant,"123\0");
-//clients[0].identifiant = "123\0";
-sprintf(clients[0].mdp,"321\0");
-//clients[0].mdp = "321\0";
-clients[0].compte_1->numero = 1;
-clients[0].compte_2->numero = 2;
-clients[0].compte_1->montant = 350;
-clients[0].compte_2->montant = 938;  
+    clients[indice_client].compte[nbCompte][0].montant = clients[indice_client].compte[nbCompte][0].montant-somme;
+    clients[indice_client].compte[nbCompte][0].type_operation = 1;
+    clients[indice_client].compte[nbCompte][0].date = time(NULL);
 
-    printf("Identifiant: %s \nMot De passe: %s \nNum compte 1: %d\nMontant 1:%d\nNum compte 2: %d\nMontant 2:%d\n",clients[0].identifiant,clients[0].mdp,clients[0].compte_1->numero,clients[0].compte_1->montant,clients[0].compte_2->numero,clients[0].compte_2->montant);
-*/
+    clients[indice_client].compte[nbCompte][1]=clients[indice_client].compte[nbCompte][0];
+    clients[indice_client].compte[nbCompte][1].montant = somme;
 
+     printf("Solde du client : %.f\n",clients[indice_client].compte[nbCompte][0].montant);
+    printf("Type operation : %d\n",clients[indice_client].compte[nbCompte][0].type_operation);
+   
+    struct tm *ptm = localtime(&clients[indice_client].compte[nbCompte][0].date);
+
+    printf("date: %02d/%02d/%02d\n",ptm->tm_mday,ptm->tm_mon,1900+ptm->tm_year);
+
+}
+
+
+case_tableau afficher_solde(int nbCompte,int indice_client){
+
+return clients[indice_client].compte[nbCompte][0];
+
+}
+
+
+
+char * historique(int indice_client,int nbCompte,int indice){
+char *buffer = malloc (sizeof (char) * 256);
+
+char jma[11];
+
+    case_tableau hist;
+
+     hist = clients[indice_client].compte[nbCompte][indice];
+
+     struct tm *ptm = localtime(&hist.date);
+     sprintf(jma,"%02d/%02d/%02d",ptm->tm_mday,ptm->tm_mon,1900+ptm->tm_year);
+
+            sprintf(buffer,"%s %d %s %.f\n","RES_SOLDE",hist.type_operation,jma, hist.montant);
+            
+            return buffer;
+
+    
+
+}
+int main(int argc, char *argv[]){   
+
+//Init client 
+sprintf(clients[0].identifiant,"123");
+//clients[0].identifiant = "123";
+sprintf(clients[0].mdp,"321");
+//clients[0].mdp = "321";
+clients[0].compte[0][0].montant = 500;
+
+for (int i = 1; i<11 ;i++){
+    clients[0].compte[0][i].montant = 0;
+    clients[0].compte[0][i].type_operation = 0;
+    clients[0].compte[0][i].date = time(NULL);
+}
+
+
+    
+    //printf("Identifiant: %s\nMot de passe: %s\nMontant: %f\n ",clients[0].identifiant,clients[0].mdp,clients[0].compte_1[0].montant);
     //Initialisation des différentes variables
 
     int sockfd, newsockfd, portno;
@@ -60,7 +151,7 @@ clients[0].compte_2->montant = 938;
     char sendBuffer[256];
     struct sockaddr_in serv_addr, cli_addr;
     int n,res_bind;
-
+    case_tableau Val;
 
     // Création de la socket TCP
 
@@ -103,67 +194,90 @@ clients[0].compte_2->montant = 938;
         char identifiant[10];
         char mdp[15];
         int action;
-        int good=0;
+        int ok=0;
         int nbCompte;
         float somme;
+        int indice_client;
+        float solde;
+        char jma[11];
 
         sscanf(buffer,"%d",&action);
-         
+        bzero(sendBuffer,256); 
+
+        printf("\n");
+        printf("Message reçu part %s:%d\n\n",inet_ntoa(cli_addr.sin_addr), ntohs(cli_addr.sin_port));
+
 
         if (action==0){
 
+            printf("Le client se connecte\n");
             sscanf(buffer,"%d %s %s",&action,identifiant,mdp);
             printf("Action: %d   \nidentifiant: %s  \nMot de passe: %s \n",action,identifiant,mdp);
-            bzero(sendBuffer,256);
-            sprintf(sendBuffer,"CONNECTED\n");
+            indice_client= verif_identifiants(identifiant,mdp);
+            printf("indice %d\n",indice_client);
+            if (indice_client != -1){sprintf(sendBuffer,"OK\n");
+            printf("Connexion acceptée\n");} else {sprintf(sendBuffer,"KO\n");printf("Connexion échouée\n");}
             n=write(newsockfd,sendBuffer,strlen(sendBuffer));
+
 
         }
 
 
         if (action==1){ 
 
-            bzero(sendBuffer,256);
-            sprintf(sendBuffer,"AJOUT\n");
+            printf("Le client fait un ajout\n");
             sscanf(buffer,"%d %s %d %s %f",&action,identifiant,&nbCompte, mdp, &somme);
-            n=write(newsockfd,sendBuffer,strlen(sendBuffer));  
-            printf("Action: %d\n Identifiant: %s\nNcompte:%d\n Mot de passe: %s\nSomme: %f \n",action,identifiant,nbCompte, mdp, somme);
+            printf("Action: %d\nIdentifiant: %s\nNcompte:%d\nMot de passe: %s\nSomme: %f \n",action,identifiant,nbCompte, mdp, somme); 
+            if( (nbCompte>2) || (nbCompte<0)){ok = 0;} else { ok =1; ajout_montant(somme,nbCompte,indice_client);}
+            if(ok ==1) {sprintf(sendBuffer,"OK\n");printf("Ajout Réussi\n");} else { sprintf(sendBuffer,"KO\n"); printf("Ajout Echoué\n");}
+            n=write(newsockfd,sendBuffer,strlen(sendBuffer)); 
+            
 
         }
 
         if (action==2){ 
 
-            bzero(sendBuffer,256);
-            sprintf(sendBuffer,"RETRAIT\n");
+            printf("Le client fait un retrait\n");
             sscanf(buffer,"%d %s %d %s %f",&action,identifiant,&nbCompte, mdp, &somme);
+            printf("Action: %d\nIdentifiant: %s\nNcompte:%d\nMot de passe: %s\nSomme: %f \n",action,identifiant,nbCompte, mdp, somme);
+            if( (nbCompte>2) || (nbCompte<0)){ok = 0;} else { ok =1;}
+            retrait_montant(somme,nbCompte,indice_client);
+            if(ok ==1) {sprintf(sendBuffer,"OK\n");printf("Retrait Réussi\n");} else { sprintf(sendBuffer,"KO\n"); printf("Retrait Echoué\n");}
             n=write(newsockfd,sendBuffer,strlen(sendBuffer));  
-            printf("Action: %d\n Identifiant: %s\nNcompte:%d\n Mot de passe: %s\nSomme: %f \n",action,identifiant,nbCompte, mdp, somme);
+            
 
         }
       
 
         if (action==3){ 
 
-            bzero(sendBuffer,256);
-            sprintf(sendBuffer,"AFFICHER SOLDE\n");
+            printf("Le client veut afficher son solde\n");
             sscanf(buffer,"%d %s %d %s",&action,identifiant,&nbCompte, mdp);
-            n=write(newsockfd,sendBuffer,strlen(sendBuffer));  
-            printf("Action: %d\n Identifiant: %s\nNcompte:%d\n Mot de passe: %s\n",action,identifiant,nbCompte, mdp);
+            printf("Action: %d\nIdentifiant: %s\nNcompte:%d\nMot de passe: %s\n",action,identifiant,nbCompte, mdp);
+            if( (nbCompte>2) || (nbCompte<0)){ok = 0;} else { ok =1; Val = afficher_solde(nbCompte,indice_client);}
+
+            struct tm *ptm = localtime(&Val.date);
+            sprintf(jma,"%02d/%02d/%02d",ptm->tm_mday,ptm->tm_mon,1900+ptm->tm_year);
+
+            sprintf(sendBuffer,"%s %.f %s","RES_SOLDE",Val.montant,jma);
+            n=write(newsockfd,sendBuffer,strlen(sendBuffer)); 
         }
 
         if (action==4){ 
 
-            bzero(sendBuffer,256);
-            sprintf(sendBuffer,"HISTORIQUE\n");
+            printf("Le client veut afficher son historique\n");
             sscanf(buffer,"%d %s %d %s",&action,identifiant,&nbCompte, mdp);
-            n=write(newsockfd,sendBuffer,strlen(sendBuffer));  
-            printf("Action: %d\n Identifiant: %s\nNcompte:%d\n Mot de passe: %s\nSomme: %f \n",action,identifiant,nbCompte, mdp, somme);
+            printf("Action: %d\nIdentifiant: %s\nNcompte:%d\nMot de passe: %s\n",action,identifiant,nbCompte, mdp);
+
+            for(int i = 1; i<11;i++){
+            sprintf(sendBuffer,"%s",historique(indice_client,nbCompte,i));
+            n=write(newsockfd,sendBuffer,strlen(sendBuffer));  }
+            
         }
 
    
         
-        bzero(buffer,256);   
-        bzero(sendBuffer,256);   
+        bzero(buffer,256);      
         close(newsockfd);
         
         }
