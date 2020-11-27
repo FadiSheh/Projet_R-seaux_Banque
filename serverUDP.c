@@ -118,6 +118,7 @@ return clients[indice_client].compte[nbCompte][0];
 
 
 char * historique(int indice_client,int nbCompte,int indice){
+	
 char *buffer = malloc (sizeof (char) * 512);
 bzero(buffer,512);
 char jma[11];

@@ -59,6 +59,11 @@ int main(int argc, char *argv[]){
     float somme;
     char buffer[512];
     char receiveBuffer[512];
+    char verif_identifiants[15];
+    char identifiant[10];
+	char mdp[15];
+	char valide[10];
+
 
     //si nombre de variables invalide
 	if (argc<4)
@@ -104,18 +109,17 @@ int main(int argc, char *argv[]){
 
 	//connexion : 0 est le premier element, id du client, mdp du client (1ere trame envoyée) (c'est quoi le 1?)
 	//ETAPE DE CONNEXION
-	char identifiant[10];
-	char mdp[15];
-
+	
 	
 
 	printf("Connexion au server\nBonjour %s\n", argv[3]);
-	printf("Veuillez renseigner votre identifiant :\n");
+	printf("Veuillez renseigner votre identifiant :\n=> ");
     scanf("%s", identifiant);
-	printf("Veuillez renseigner votre mdp:\n");
+	printf("Veuillez renseigner votre mdp:\n=> ");
 	scanf("%s", mdp);
-	//printf("%s\n", mdp);
-	
+
+
+
 	//on stocke ces données dans un buffer
 	sprintf(buffer, "%d %s %s", 0, identifiant, mdp);
     n = write(sockfd,buffer,strlen(buffer));
@@ -129,7 +133,7 @@ int main(int argc, char *argv[]){
 	close(sockfd);
 
 
-	char verif_identifiants[15];
+	
 
 
 	printf("%s\n\n",receiveBuffer);
@@ -146,6 +150,10 @@ int main(int argc, char *argv[]){
 
 	//en fonction de laction choisie on demande infos supp
 	//FAIRE DES FONCTIONS
+
+
+
+
 	while(flag){
 		if(m == 1){
 			//ajout d'une somme
@@ -218,15 +226,31 @@ int main(int argc, char *argv[]){
 
     if(m==4){sleep(1);}
 
+    if ((m==1) || (m==2)) {
+
+
+    	sscanf(receiveBuffer,"%s",valide);
+	//demander l'action si la reponse du serveur est valide
+	if(strcmp("OK",valide) == 0){
+
+		printf("Transaction Réussie\n");
+		//si la premiere donnée est un 1 => on peut passer dans le menu
+		
+	} else { printf("Transaction Echouée\n");}
+
+
+    }
+
+    bzero(receiveBuffer,512); 
 
     n = read(sockfd,receiveBuffer,512);
     
    	printf("\n%s", receiveBuffer);
 	
+
 	// On ferme la socket
-    //printf("Déconnexion\n");
     close(sockfd);
-    bzero(receiveBuffer,512);  
+     
 
     printf("\n");   
     m = menu();
