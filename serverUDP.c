@@ -9,8 +9,7 @@
 #include <arpa/inet.h>
 #include <time.h>
 
-// Données sur les clients
-//time_t rawtime = time(NULL);
+
 
 
 typedef struct{
