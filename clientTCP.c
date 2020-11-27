@@ -69,14 +69,14 @@ int main(int argc, char *argv[]){
 	if (argc<4)
 	{
 		fprintf(stderr,"./client <server_address> <server_numport> <message>\n");
-		fprintf(stderr,"ex: ./client localhost 32000 \"joe\"\n");
+		fprintf(stderr,"ex: ./client localhost 32000 \"Prenom\"\n");
 		return 1;
 	}
 
 	//recuperation du numero du port
     portno = atoi(argv[2]);
 
-	//creation de la socket
+	//creation du socket
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
     if (sockfd < 0) 
@@ -107,7 +107,7 @@ int main(int argc, char *argv[]){
 	}
 
 
-	//connexion : 0 est le premier element, id du client, mdp du client (1ere trame envoyée) (c'est quoi le 1?)
+	//connexion : 0 est le premier element, id du client, mdp du client (1ere trame envoyée) 
 	//ETAPE DE CONNEXION
 	
 	
@@ -148,7 +148,7 @@ int main(int argc, char *argv[]){
 		flag = 1;
 	} else { printf("Identifiants Erronés\n");exit(0);}
 
-	//en fonction de laction choisie on demande infos supp
+	//en fonction de l'action choisie on demande infos supp
 	//FAIRE DES FONCTIONS
 
 
@@ -224,7 +224,7 @@ int main(int argc, char *argv[]){
     printf("\nMessage envoyé\nAttente de la réponse\n");
 
 
-    if(m==4){sleep(1);}
+    if(m==4){sleep(1);} //donne le temps de recevoir toutes les trames sinon ça ne les affiche pas toutes Le réduire ?
 
     if ((m==1) || (m==2)) {
 
